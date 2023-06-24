@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quản lí thời gian và địa điểm giao hàng</title>
+    <style>
+        body {
+            background-color: #f2f2f2;
+            font-family: Arial, sans-serif;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        #map {
+            height: 400px;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:hover {
+            background-color: #e6e6e6;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 6px 12px;
+            text-align: center;
+            text-decoration: none;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+
+        .add-form {
+            margin-bottom: 20px;
+        }
+
+        .add-form label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .add-form input[type="text"],
+        .add-form input[type="date"] {
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            width: 200px;
+        }
+
+        .add-form .button {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Quản lí thời gian và địa điểm giao hàng</h2>
+
+    <div class="add-form">
+        <h3>Thêm đơn hàng mới</h3>
+        <form id="addForm">
+            <label for="deliveryTime">Thời gian giao hàng:</label>
+            <input type="datetime-local" id="deliveryTime" name="deliveryTime">
+
+            <label for="deliveryLocation">Địa điểm giao hàng:</label>
+            <input type="text" id="deliveryLocation" name="deliveryLocation">
+
+            <div id="map"></div>
+
+            <button class="button" type="submit">Thêm</button>
+        </form>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Thời gian giao hàng</th>
+                <th>Địa điểm giao hàng</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="deliveryTable"></tbody>
+    </table>
+
+    <script>
+        var deliveries = [];
+        function getStoredDeliveries() {
+            var storedDeliveries = localStorage.getItem('deliveries');
+if (storedDeliveries) {
+deliveries = JSON.parse(storedDeliveries);
+}
+}
+    function storeDeliveries() {
+        localStorage.setItem('deliveries', JSON.stringify(deliveries));
+    }
+
+    function renderTable() {
+        var tableBody = document.getElementById('deliveryTable');
+        tableBody.innerHTML = '';
+
+        for (var i = 0; i < deliveries.length; i++) {
+            var delivery = deliveries[i];
+
+            var row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${delivery.deliveryTime}</td>
+                <td>${delivery.deliveryLocation}</td>
+                <td>
+                    <button class="button" onclick="editRow(${i})">Sửa</button>
+                    <button class="button" onclick="deleteRow(${i})">Xóa</button>
+                </td>
+            `;
+
+            tableBody.appendChild(row);
+        }
+    }
+
+
+    function addDelivery(event) {
+        event.preventDefault();
+
+        var deliveryTimeInput = document.getElementById('deliveryTime');
+        var deliveryLocationInput = document.getElementById('deliveryLocation');
+
+        var newDelivery = {
+            deliveryTime: deliveryTimeInput.value,
+            deliveryLocation: deliveryLocationInput.value
+        };
+
+        deliveries.push(newDelivery);
+        storeDeliveries();
+        renderTable();
+        document.getElementById('addForm').reset();
+    }
+
+    function editRow(index) {
+        var delivery = deliveries[index];
+
+        var deliveryTimeInput = document.getElementById('deliveryTime');
+        var deliveryLocationInput = document.getElementById('deliveryLocation');
+
+        deliveryTimeInput.value = delivery.deliveryTime;
+        deliveryLocationInput.value = delivery.deliveryLocation;
+
+        deliveries.splice(index, 1);
+        storeDeliveries();
+        renderTable();
+    }
+
+    function deleteRow(index) {
+
+        if (confirm('Bạn có chắc muốn xóa đơn hàng này?')) {
+            deliveries.splice(index, 1);
+            storeDeliveries();
+            renderTable();
+        }
+    }
+    function initMap() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: 15.9742, lng: 107.8687},
+            zoom: 6
+        });
+
+        var marker = new google.maps.Marker({
+            map: map,
+            position: map.getCenter(),
+            draggable: true
+        });
+
+        marker.addListener('dragend', function(event) {
+            var latitude = event.latLng.lat();
+            var longitude = event.latLng.lng();
+            document.getElementById('deliveryLocation').value = latitude + ', ' + longitude;
+        });
+    }
+    document.getElementById('addForm').addEventListener('submit', addDelivery);
+
+    getStoredDeliveries();
+    renderTable();
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&
+

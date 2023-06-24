@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lưu thông tin khách hàng</title>
+    <style>
+        body {
+            background-color: #f2f2f2;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .btn {
+            background-color: #4CAF50;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 8px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <form id="customerForm">
+            <div class="form-group">
+                <label for="name">Tên khách hàng:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Số điện thoại:</label>
+                <input type="text" id="phone" name="phone" required>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Lưu thông tin" class="btn">
+            </div>
+        </form>
+
+        <table id="customerTable">
+            <thead>
+                <tr>
+                    <th>Tên khách hàng</th>
+                    <th>Số điện thoại</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+
+        <button id="clearButton" class="btn" style="margin-top: 10px;">Xóa danh sách</button>
+    </div>
+
+    <script>
+        document.getElementById("customerForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            var name = document.getElementById("name").value;
+            var phone = document.getElementById("phone").value;
+
+            var customer = {
+                name: name,
+                phone: phone
+            };
+
+            var customers = JSON.parse(localStorage.getItem("customers")) || [];
+            customers.push(customer);
+            localStorage.setItem("customers", JSON.stringify(customers));
+
+            alert("Thông tin khách hàng đã được lưu.");
+
+            document.getElementById("customerForm").reset();
+displayCustomerList();
+});
+document.getElementById("clearButton").addEventListener("click", function() {
+        localStorage.removeItem("customers");
+        clearCustomerList();
+    });
+
+    function displayCustomerList() {
+        var tableBody = document.querySelector("#customerTable tbody");
+        tableBody.innerHTML = "";
+
+        var customers = JSON.parse(localStorage.getItem("customers")) || [];
+
+        for (var i = 0; i < customers.length; i++) {
+            var customer = customers[i];
+            var newRow = tableBody.insertRow();
+            var nameCell = newRow.insertCell(0);
+            var phoneCell = newRow.insertCell(1);
+            var deleteCell = newRow.insertCell(2);
+
+            nameCell.textContent = customer.name;
+            phoneCell.textContent = customer.phone;
+            deleteCell.innerHTML = '<button class="btn-delete">Xóa</button>';
+            var deleteButton = deleteCell.querySelector(".btn-delete");
+            deleteButton.addEventListener("click", function() {
+                deleteCustomer(newRow);
+            });
+        }
+    }
+
+    function clearCustomerList() {
+        var tableBody = document.querySelector("#customerTable tbody");
+        tableBody.innerHTML = "";
+    }
+
+    function deleteCustomer(row) {
+        var tableBody = document.querySelector("#customerTable tbody");
+        tableBody.removeChild(row);
+
+        var customers = JSON.parse(localStorage.getItem("customers")) || [];
+        var index = row.rowIndex - 1;
+        customers.splice(index, 1);
+        localStorage.setItem("customers", JSON.stringify(customers));
+    }
+
+    window.addEventListener("load", function() {
+        displayCustomerList();
+    });
+</script>
+
